@@ -1,6 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 import Head from 'next/head';
+import Navbar from '../components/Navbar';
 
 class Home extends React.Component {
   constructor(props){
@@ -8,7 +9,8 @@ class Home extends React.Component {
     this.state = {
       currentLocation: [],
       currentWeather: [],
-      currentCondition: []
+      currentCondition: [],
+      isLoading: true,
     }
   }
 
@@ -20,7 +22,8 @@ class Home extends React.Component {
     this.setState({
       currentLocation,
       currentWeather,
-      currentCondition
+      currentCondition,
+      isLoading: false
     })
   }
 
@@ -30,32 +33,51 @@ class Home extends React.Component {
   }
 
   render(){
-    console.log(this.state.currentCondition.all);
     let latitude = Math.round(this.state.currentLocation.latitude * 10000) / 10000;
-    let longitude = Math.round(this.state.currentLocation.longitude * 10000) / 10000;
+    let longitude = Math.round(this.state.currentLocation.longitude * 1000) / 1000;
+    let cloudy = true;
+    this.state.currentCondition.all < 40 ?  cloudy = false : cloudy = true;
     return (
-      <div className="container">
+      <div className={cloudy ? "container cloudy" : "container sunny"}>
         <Head>
           <title>Weather Forecast</title>
           <link rel="icon" href="/favicon.ico" />
           <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,600;0,800;1,900&display=swap" rel="preload" as="font" crossOrigin=""></link>
         </Head>
   
-        <main>
-          <h1 className="header">Welcome! Current weather bellow:</h1>
-          <div className="weather">
-          <p className="temperature">{Math.round(this.state.currentWeather.temp * 10) / 10}&deg;C</p>
-            {this.state.currentCondition.all < 50 ?  <p className="condition">sunny day</p> : <p className="condition">cloudy day</p>}
-            <p className="city">{this.state.currentLocation.city}, {this.state.currentLocation.country_name}</p>
-            <div className="location">
-            {this.state.currentLocation.latitude < 0 ? <h2 className="lat">{latitude}&deg; S</h2> : <h2 className="lat">{latitude}&deg; N</h2>}
-            {this.state.currentLocation.longitude < 0 ? <h2 className="lat">{longitude}&deg; W</h2> : <h2 className="lat">{longitude}&deg; E</h2>}
-          </div> 
-          </div>
-        </main>
+       
+        {this.state.isLoading ? 
+          <main>
+            <Navbar />
+            <h1 className="header loading" />
+            <div className="weather">
+              <p className="temperature loading" />
+                <p className="condition loading" />
+                <p className="city loading" />
+                <div className="location">
+                <h2 className="lat loading" />
+                <h2 className="lon loading" />
+              </div> 
+            </div>
+          </main> :
+          <main>
+            <Navbar />
+            <h1 className="header">Welcome! Current weather is:</h1>
+            <div className="weather">
+              <p className="temperature">{Math.round(this.state.currentWeather.temp * 10) / 10}&deg;C</p>
+              {!cloudy ? <p className="condition">sunny day</p> : <p className="condition">cloudy day</p>}
+              <p className="city">{this.state.currentLocation.city}, {this.state.currentLocation.country_name}</p>
+              <div className="location">
+                {this.state.currentLocation.latitude < 0 ? <h2 className="lat">{latitude}&deg; S</h2> : <h2 className="lat">{latitude}&deg; N</h2>}
+                {this.state.currentLocation.longitude < 0 ? <h2 className="lon">{longitude}&deg; W</h2> : <h2 className="lon">{longitude}&deg; E</h2>}
+              </div> 
+            </div>
+          </main>
+        }
+      
   
         <footer>
-          
+          <p>Designed and coded by: <b>Jakub Łasecki</b></p>
         </footer>
   
         <style jsx>{`
@@ -65,9 +87,16 @@ class Home extends React.Component {
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background-image: url(/bg.svg);
             background-size: cover;
             background-position: center;
+          }
+
+          .sunny{
+            background-image: url(/bgSunny.svg);
+          }
+
+          .cloudy{
+            background-image: url(/bgCloudy.svg);
           }
   
           main {
@@ -78,7 +107,7 @@ class Home extends React.Component {
           }
   
           .header{
-            margin: 30vh auto 0 auto;
+            margin: 20vh auto 0 auto;
             color: #fff;
             font-size: 16px;
             font-weight: 400;
@@ -124,14 +153,30 @@ class Home extends React.Component {
             text-transform: uppercase;
             margin: 20px;
           }
+
+          .loading{
+            width: 200px;
+            height: 30px;
+            background-color: #fff;
+            border-radius: 10px;
+            opacity: .1;
+          }
+
+          .temperature.loading{
+            margin-top: 50px;
+            height: 100px;
+          }
   
           footer {
             width: 100%;
-            height: 100px;
+            height: 50px;
             border-top: 1px solid #eaeaea;
             display: flex;
             justify-content: center;
             align-items: center;
+            color: #fff;
+            opacity: .3;
+            font-weight: 200;
           }
           
         `}</style>
