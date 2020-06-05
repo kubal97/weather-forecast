@@ -1,18 +1,43 @@
 import React from 'react';
 import axios from 'axios';
 import Head from 'next/head';
+import { withRouter } from 'next/router'
 import Navbar from '../components/Navbar';
-import { PropTypes } from 'react'
+import Cards from '../components/Cards';
 
 class forecast extends React.Component {
   constructor(props){
     super(props);
-    this.weatherData = this.weatherData.bind(this);
     this.state = {
-      weather: []
+      city: '',
+      weather: [],
+      isLoading: true,
+      error: false
     }
   }
 
+  async searchFilter(input) {
+    let lowerCase = input.toLowerCase();
+    let city = lowerCase.charAt(0).toUpperCase() + lowerCase.slice(1);
+    const location = (await axios.get(`https://geocode.xyz/${city},?json=1,461742712774512784134x6156`)).data;
+    location.error ? this.setState({isLoading: false, error: true}) : null;
+    const weather = [];
+    location && weather.push(await axios.get(`https://api.openweathermap.org/data/2.5/onecall?lat=${location.latt}&lon=${location.longt}&
+    exclude=hourly,daily&units=metric&appid=a13b7ef6a87a98ee8933dff99a45247f`).catch(error => alert(error)))
+    location && this.setState({
+        weather: weather[0].data,
+        isLoading: false,
+        city
+    })
+  } 
+
+  componentDidMount(){
+    this.searchFilter(this.props.router.query.city);
+  }
+
+  componentDidUpdate(){
+    this.searchFilter(this.props.router.query.city);
+  }
 
   render(){
     return (
@@ -23,9 +48,29 @@ class forecast extends React.Component {
           <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,600;0,800;1,900&display=swap" rel="preload" as="font" crossOrigin=""></link>
         </Head>
     
+        {this.state.isLoading ?
           <main>
             <Navbar />
-          </main>   
+            <h1 className="loading">Loading ...</h1>
+          </main>
+        :
+          (this.state.error ? 
+            <main>
+              <Navbar />
+              <h1 className="city">There was an error or we couldn't find your city :(. <br/>Please check if you spelled your city correct.</h1>
+            </main>
+            :
+            <main>
+              <Navbar />
+              <h1 className="city">7 day weather forecast for: <b>{this.state.city}</b></h1>
+              <div className="forecast">
+                {this.state.weather.daily.map((day, index) => (
+                  <Cards key={index} index={index} weather={day} />
+                ))}
+              </div>
+            </main>
+          )
+        }   
   
         <footer>
           <p>Designed and coded by: <b>Jakub Łasecki</b></p>
@@ -64,6 +109,31 @@ class forecast extends React.Component {
             font-size: 16px;
             font-weight: 400;
           }
+
+          .loading{
+            margin: 40vh auto;
+            color: #fff;
+          }
+
+          .city{
+            text-align: center;
+            margin: 50px auto;
+            color: #fff;
+            font-size: 32px;
+            font-weight: 400;
+          }
+
+          .forecast{
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin: auto;
+            width: 80vw;
+            height: auto;
+            border-radius: 5px;
+            padding: 20px;
+            flex-wrap: wrap;
+          }
   
           footer {
             width: 100%;
@@ -78,7 +148,7 @@ class forecast extends React.Component {
           }
           
         `}</style>
-  
+
         <style jsx global>{`
           html,
           body {
@@ -97,4 +167,4 @@ class forecast extends React.Component {
   
 }
 
-export default forecast
+export default withRouter(forecast)

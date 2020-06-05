@@ -9,7 +9,6 @@ class Home extends React.Component {
     this.state = {
       currentLocation: [],
       currentWeather: [],
-      currentCondition: [],
       isLoading: true,
     }
   }
@@ -17,12 +16,11 @@ class Home extends React.Component {
   async getLocationAndWeatherData() {
     const ip = (await axios.get('http://ip-api.com/json/').catch(error => alert(error))).data.query;
     const currentLocation = (await axios.get(`http://api.ipstack.com/${ip}?access_key=82c281aca5cc11fccfd3a662c2a01622`).catch(error => alert(error))).data;
-    const currentWeather = (await axios.get(`http://api.openweathermap.org/data/2.5/weather?q=${currentLocation.city}&units=metric&appid=a13b7ef6a87a98ee8933dff99a45247f`).catch(error => alert(error))).data.main;
-    const currentCondition = (await axios.get(`http://api.openweathermap.org/data/2.5/weather?q=${currentLocation.city}&units=metric&appid=a13b7ef6a87a98ee8933dff99a45247f`).catch(error => alert(error))).data.clouds;
+    const currentWeather = []
+    currentLocation && currentWeather.push(await axios.get(`http://api.openweathermap.org/data/2.5/weather?q=${currentLocation.city}&units=metric&appid=a13b7ef6a87a98ee8933dff99a45247f`).catch(error => alert(error))).data;
     this.setState({
       currentLocation,
-      currentWeather,
-      currentCondition,
+      currentWeather: currentWeather[0],
       isLoading: false
     })
   }
@@ -36,7 +34,7 @@ class Home extends React.Component {
     let latitude = Math.round(this.state.currentLocation.latitude * 10000) / 10000;
     let longitude = Math.round(this.state.currentLocation.longitude * 1000) / 1000;
     let cloudy = true;
-    this.state.currentCondition.all < 40 ?  cloudy = false : cloudy = true;
+    this.state.currentWeather.data && this.state.currentWeather.data.clouds.all < 40 ?  cloudy = false : cloudy = true;
     return (
       <div className={cloudy ? "container cloudy" : "container sunny"}>
         <Head>
@@ -64,7 +62,7 @@ class Home extends React.Component {
             <Navbar />
             <h1 className="header">Welcome! Current weather is:</h1>
             <div className="weather">
-              <p className="temperature">{Math.round(this.state.currentWeather.temp * 10) / 10}&deg;C</p>
+              <p className="temperature">{Math.round(this.state.currentWeather.data && (this.state.currentWeather.data.main.temp * 10)) / 10}&deg;C</p>
               {!cloudy ? <p className="condition">sunny day</p> : <p className="condition">cloudy day</p>}
               <p className="city">{this.state.currentLocation.city}, {this.state.currentLocation.country_name}</p>
               <div className="location">
