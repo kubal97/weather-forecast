@@ -31,13 +31,14 @@ class forecast extends React.Component {
     })
   } 
 
-  componentDidMount(){
+  componentDidMount = () => {
     this.searchFilter(this.props.router.query.city);
+    console.log(this.props.router.query.city);
   }
 
-  componentDidUpdate(){
-    this.searchFilter(this.props.router.query.city);
-  }
+  componentDidUpdate(prevProps) {
+    if (prevProps.router.query.city !== this.props.router.query.city)  this.searchFilter(this.props.router.query.city);
+}
 
   render(){
     return (
